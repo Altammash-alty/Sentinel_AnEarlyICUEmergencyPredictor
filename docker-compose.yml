@@ -1,0 +1,108 @@
+version: "3.9"
+
+services:
+  # ── PostgreSQL + TimescaleDB ─────────────────────────────────────────────
+  db:
+    image: timescale/timescaledb:latest-pg15
+    container_name: sentinel-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       sentinel
+      POSTGRES_USER:     sentinel
+      POSTGRES_PASSWORD: sentinel123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinel -d sentinel"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Data Generation ──────────────────────────────────────────────────────
+  data-gen:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    container_name: sentinel-datagen
+    command: >
+      sh -c "
+        cd /app &&
+        python data/generate_data.py &&
+        python data/preprocess.py
+      "
+    volumes:
+      - .:/app
+    working_dir: /app
+
+  # ── ML Training ──────────────────────────────────────────────────────────
+  ml-train:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    container_name: sentinel-train
+    command: >
+      sh -c "
+        cd /app &&
+        python ml/train_lstm.py
+      "
+    depends_on:
+      data-gen:
+        condition: service_completed_successfully
+    volumes:
+      - .:/app
+    working_dir: /app
+
+  # ── FastAPI Backend ───────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    container_name: sentinel-backend
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      db:
+        condition: service_healthy
+      ml-train:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://sentinel:sentinel123@db:5432/sentinel
+      MODEL_PATH:   /app/ml/saved_model/sentinel_lstm.pt
+      SCALER_PATH:  /app/ml/saved_model/scaler.pkl
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    working_dir: /app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ── React Frontend ─────────────────────────────────────────────────────────
+  frontend:
+    image: node:20-alpine
+    container_name: sentinel-frontend
+    working_dir: /app
+    command: >
+      sh -c "
+        npm install --legacy-peer-deps &&
+        npm run dev
+      "
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      VITE_API_URL: http://localhost:8000
+      VITE_WS_URL:  ws://localhost:8000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+    restart: unless-stopped
+
+volumes:
+  pgdata:
