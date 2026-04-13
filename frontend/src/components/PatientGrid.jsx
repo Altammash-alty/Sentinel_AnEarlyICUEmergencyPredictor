@@ -50,8 +50,11 @@ function PatientCard({ patient }) {
         <div className="card-ward">{patient.ward}</div>
         <button 
           title="Trigger Crisis for this patient"
-          onClick={() => fetch(`${API_BASE}/system/trigger/deterioration?patient_id=${patient.id}`, { method: "POST" })}
-          style={{ background: 'transparent', border: '1px solid #1e2a3a', borderRadius: '4px', color: '#ef4444', cursor: 'pointer', fontSize: '10px', padding: '2px 6px', marginLeft: 'auto', marginRight: '4px', transition: 'background 0.2s', ...({':hover':{background:'rgba(239,68,68,0.1)'}}) }}
+          onClick={(e) => {
+            e.stopPropagation();
+            fetch(`${API_BASE}/system/trigger/deterioration?patient_id=${patient.id}`, { method: "POST" }).catch(console.error);
+          }}
+          style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid #ef4444', borderRadius: '4px', color: '#ef4444', cursor: 'pointer', fontSize: '10px', padding: '2px 6px', marginLeft: 'auto', marginRight: '4px', zIndex: 10 }}
         >
           ⚕ Trigger
         </button>
