@@ -15,8 +15,9 @@ RapidMiner was used as the **core analytics and model prototyping layer** for th
 - **Baseline Predictive Model:** Auto Model feature was used to train and compare 205 models on the ICU vitals dataset — Naive Bayes achieved **0.0% classification error (100% accuracy)**.
 - **Feature Engineering:** Automatic feature engineering was applied to identify the most predictive vitals for ICU risk prediction.
 - **Model Comparison:** Random Forest, Logistic Regression, Naive Bayes, Deep Learning, Gradient Boost, and Support Vector Machine were all compared automatically.
-- **Workflow & Screenshots:** Available in `rapidminer/screenshots/` folder.
-- **Dataset used:** `icu_vitals.csv` — 100 patient records with HR, SBP, SpO2, RR, Temp, Risk_Label.
+- **Dataset:** `rapidminer/icu_vitals.csv` — 100 patient records with HR, SBP, SpO2, RR, Temp, Risk_Label (no missing values).
+- **Workflow File:** `rapidminer/sentinel_icu_workflow.rmp` — full RapidMiner process file, importable directly into Altair AI Studio.
+- **Screenshots:** Available in `rapidminer/screenshots/` folder.
 
 > ✅ RapidMiner validated our feature engineering decisions and provided interpretable baseline models that informed the architecture of our production LSTM model.
 
@@ -86,20 +87,24 @@ Raw Vitals Stream
 ```
 Sentinel_AnEarlyICUEmergencyPredictor/
 │
-├── backend/                  # FastAPI backend, WebSocket, Alert Engine
-├── data/                     # Data generation & preprocessing scripts
-├── frontend/                 # React dashboard (Recharts, Tailwind, Vite)
-├── ml/                       # LSTM model training & evaluation (PyTorch)
+├── backend/                         # FastAPI backend, WebSocket, Alert Engine
+├── data/                            # Data generation & preprocessing scripts
+├── frontend/                        # React dashboard (Recharts, Tailwind, Vite)
+├── ml/                              # LSTM model training & evaluation (PyTorch)
+│
 ├── rapidminer/
-│   └── screenshots/          # Altair AI Studio workflow, 205 models comparison,
-│                             # Naive Bayes performance, feature engineering screenshots
+│   ├── icu_vitals.csv               # 100-row ICU vitals dataset (input data)
+│   ├── sentinel_icu_workflow.rmp    # Full RapidMiner/AI Studio process file
+│   └── screenshots/                 # Workflow canvas, 205 models comparison,
+│                                    # Naive Bayes performance, feature engineering
+│
 ├── mendix/
-│   └── screenshots/          # SENTINEL Mendix app, project plan, Maia AI output
-├── icu_vitals.csv            # 100-row ICU vitals dataset used in RapidMiner
-├── .env                      # Environment variables
-├── docker-compose.yml        # Full stack orchestration
-├── Dockerfile.python         # Python service container
-└── requirements.txt          # Python dependencies
+│   └── screenshots/                 # SENTINEL Mendix app, Maia AI project plan
+│
+├── .env                             # Environment variables
+├── docker-compose.yml               # Full stack orchestration
+├── Dockerfile.python                # Python service container
+└── requirements.txt                 # Python dependencies
 ```
 
 ---
