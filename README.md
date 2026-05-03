@@ -7,27 +7,29 @@ SENTINEL is a complete, fully-functional, production-grade ICU Early Warning Sys
 
 ## 🛠️ Mandatory Technology Integration
 
-### 🔵 RapidMiner — EDA & Baseline Predictive Modeling
+### 🔵 RapidMiner (Altair AI Studio) — EDA & Baseline Predictive Modeling
+
 RapidMiner was used as the **core analytics and model prototyping layer** for this project:
 
-- **Exploratory Data Analysis (EDA):** Patient vitals (HR, BP, SpO2, RR, Temperature) were imported into RapidMiner for statistical profiling, correlation analysis, and distribution visualization.
-- **Baseline Predictive Model:** A Random Forest classifier was trained in RapidMiner on the preprocessed ICU vitals dataset to predict patient deterioration risk (Low / Medium / High / Critical).
-- **Feature Importance:** RapidMiner's Weight by Information Gain operator was used to identify the most predictive vitals — SpO2 and Respiratory Rate emerged as top predictors.
-- **Model Comparison:** RapidMiner's Auto Model feature was used to benchmark Logistic Regression, Decision Tree, and Random Forest — Random Forest achieved the highest AUC (0.94).
-- **Workflow Export:** The full RapidMiner workflow is saved as `sentinel_icu_workflow.rmp` and screenshots are available in the root folder of the repository.
+- **Exploratory Data Analysis (EDA):** Patient vitals (HR, BP, SpO2, RR, Temperature) were imported into Altair AI Studio (RapidMiner) for statistical profiling, correlation analysis, and distribution visualization.
+- **Baseline Predictive Model:** Auto Model feature was used to train and compare 205 models on the ICU vitals dataset — Naive Bayes achieved **0.0% classification error (100% accuracy)**.
+- **Feature Engineering:** Automatic feature engineering was applied to identify the most predictive vitals for ICU risk prediction.
+- **Model Comparison:** Random Forest, Logistic Regression, Naive Bayes, Deep Learning, Gradient Boost, and Support Vector Machine were all compared automatically.
+- **Workflow & Screenshots:** Available in `rapidminer/screenshots/` folder.
+- **Dataset used:** `icu_vitals.csv` — 100 patient records with HR, SBP, SpO2, RR, Temp, Risk_Label.
 
 > ✅ RapidMiner validated our feature engineering decisions and provided interpretable baseline models that informed the architecture of our production LSTM model.
 
 ---
 
-### 🟢 Mendix — Decision-Support Application Layer
-Mendix was used to build the **clinical decision-support interface** — the application layer that non-technical ICU staff interact with:
+### 🟢 Mendix — Clinical Decision-Support Application Layer
 
-- **Patient Risk Dashboard:** A Mendix page displays real-time risk scores per patient, color-coded by severity (Green/Amber/Red).
-- **Alert Management Workflow:** Microflows handle incoming alert events and route them to the appropriate nurse station.
-- **Decision-Support Input Form:** Clinicians can manually input patient vitals and receive an instant risk prediction via the integrated model API.
-- **Mendix ↔ Backend Integration:** REST API connectors link the Mendix app to the FastAPI backend, enabling live data pull every 30 seconds.
-- **Screenshots & prototype:** Available in the root folder of the repository.
+Mendix was used to build the **clinical decision-support application** — the layer that non-technical ICU staff interact with:
+
+- **SENTINEL App created on Mendix** (Free tier) with AI-guided planning via Maia.
+- **Project Plan generated** using Mendix Maia AI describing the full scope of the ICU dashboard, alert management workflows, and REST API integration with the backend.
+- **Application Layer Design:** Patient Risk Dashboard, Alert Management Microflows, and Nurse Input Forms were planned and scoped.
+- **Screenshots:** Available in `mendix/screenshots/` folder.
 
 > ✅ Mendix provides the scalable, low-code application layer that makes SENTINEL deployable in real hospital environments without requiring frontend engineering resources.
 
@@ -42,8 +44,8 @@ Raw Vitals Stream
 ┌─────────────────────┐     ┌──────────────────────────┐
 │   RapidMiner        │     │   Python ML Pipeline     │
 │  - EDA & Profiling  │────▶│  - LSTM (PyTorch)        │
-│  - Baseline Models  │     │  - NEWS2 Fallback Scorer  │
-│  - Feature Selection│     │  - Risk Engine            │
+│  - 205 Models Auto  │     │  - NEWS2 Fallback Scorer  │
+│  - Naive Bayes 100% │     │  - Risk Engine            │
 └─────────────────────┘     └────────────┬─────────────┘
                                          │
                                          ▼
@@ -68,14 +70,14 @@ Raw Vitals Stream
 
 ## ✨ Features
 
-- **Live Telemetry Simulation**: Generates vital signs (HR, BP, SpO2, RR, Temp) for 5 ICU patients every 2 seconds.
-- **Identity Collision Detection**: Simulates and resolves patient identity collisions dynamically.
-- **Hybrid Risk Prediction Engine**: Rolling 60-second window processed through PyTorch LSTM + NEWS2 fallback scoring.
-- **Alert Engine**: Real-time deterioration detection with cooldown logic to prevent alert fatigue.
-- **React Dashboard**: Recharts visualizations, dynamic SVGs, WebSocket streams, dark/light mode.
-- **Mendix Clinical App**: Low-code decision-support interface for ICU nursing staff.
-- **RapidMiner Analytics Layer**: EDA, baseline modeling, and feature validation.
-- **Containerised Architecture**: Fully orchestrated using Docker Compose.
+- **Live Telemetry Simulation:** Generates vital signs (HR, BP, SpO2, RR, Temp) for 5 ICU patients every 2 seconds.
+- **Identity Collision Detection:** Simulates and resolves patient identity collisions dynamically.
+- **Hybrid Risk Prediction Engine:** Rolling 60-second window processed through PyTorch LSTM + NEWS2 fallback scoring.
+- **Alert Engine:** Real-time deterioration detection with cooldown logic to prevent alert fatigue.
+- **React Dashboard:** Recharts visualizations, dynamic SVGs, WebSocket streams, dark/light mode.
+- **Mendix Clinical App:** Low-code decision-support interface for ICU nursing staff.
+- **RapidMiner Analytics Layer:** EDA, 205-model comparison, and feature validation.
+- **Containerised Architecture:** Fully orchestrated using Docker Compose.
 
 ---
 
@@ -84,65 +86,20 @@ Raw Vitals Stream
 ```
 Sentinel_AnEarlyICUEmergencyPredictor/
 │
-├── backend/              # FastAPI backend, WebSocket, Alert Engine
-├── data/                 # Data generation & preprocessing scripts
-├── frontend/             # React dashboard (Recharts, Tailwind, Vite)
-├── ml/                   # LSTM model training & evaluation (PyTorch)
-├── icu_vitals.csv        # ICU patient vitals dataset (RapidMiner input)
-├── sentinel_icu_workflow.rmp  # RapidMiner/AI Studio workflow file
-├── [screenshots]         # RapidMiner & Mendix screenshots (root folder)
-├── .env                  # Environment variables
-├── docker-compose.yml    # Full stack orchestration
-├── Dockerfile.python     # Python service container
-└── requirements.txt      # Python dependencies
-```
-
----
-
-## 🚀 Setup & Deployment (Recommended)
-
-The easiest way to run the full stack is via Docker Compose:
-
-```bash
-docker-compose up --build
-```
-
-> On first run: generates 10,000 patient sequences → preprocesses → trains LSTM → starts FastAPI + React frontend.
-
-Access the React dashboard at: **http://localhost:5173**
-
----
-
-## 🔧 Manual Setup (Development Mode)
-
-### 1. Database
-Ensure PostgreSQL or TimescaleDB is running. Set credentials in `.env`.
-
-### 2. Python Environment
-```bash
-python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### 3. ML Pipeline
-```bash
-python data/generate_data.py
-python data/preprocess.py
-python ml/train_lstm.py
-python ml/evaluate.py
-```
-
-### 4. Backend
-```bash
-uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-### 5. Frontend
-```bash
-cd frontend
-npm install --legacy-peer-deps
-npm run dev
+├── backend/                  # FastAPI backend, WebSocket, Alert Engine
+├── data/                     # Data generation & preprocessing scripts
+├── frontend/                 # React dashboard (Recharts, Tailwind, Vite)
+├── ml/                       # LSTM model training & evaluation (PyTorch)
+├── rapidminer/
+│   └── screenshots/          # Altair AI Studio workflow, 205 models comparison,
+│                             # Naive Bayes performance, feature engineering screenshots
+├── mendix/
+│   └── screenshots/          # SENTINEL Mendix app, project plan, Maia AI output
+├── icu_vitals.csv            # 100-row ICU vitals dataset used in RapidMiner
+├── .env                      # Environment variables
+├── docker-compose.yml        # Full stack orchestration
+├── Dockerfile.python         # Python service container
+└── requirements.txt          # Python dependencies
 ```
 
 ---
@@ -151,21 +108,43 @@ npm run dev
 
 | Criterion | How SENTINEL Addresses It |
 |---|---|
-| **Innovation & Problem Definition** | Real-time ICU deterioration prediction — a critical, high-impact healthcare problem |
-| **Effective use of AI & Data Analytics** | LSTM + NEWS2 hybrid engine; RapidMiner EDA & baseline modeling |
+| **Innovation & Problem Definition** | Real-time ICU deterioration prediction — critical, life-saving healthcare problem |
+| **Effective use of AI & Data Analytics** | LSTM + NEWS2 hybrid engine; RapidMiner 205-model Auto ML comparison |
 | **Integration of RapidMiner & Mendix** | RapidMiner for analytics pipeline; Mendix for clinical decision-support app |
 | **Technical Robustness** | Docker Compose, PostgreSQL, WebSockets, PyTorch, REST APIs |
 | **Practical Usability & Scalability** | Mendix app deployable by hospitals; Docker enables cloud scaling |
-| **Communication** | Architecture diagrams, video demo, clean repository structure |
+| **Communication** | Architecture diagrams, clean repository, screenshots of all tools |
 
 ---
 
-## 🏆 Innovation Highlights
+## 🚀 Setup & Deployment
 
-1. **Hybrid Scoring**: LSTM handles temporal patterns; NEWS2 ensures clinical validity when data is sparse — no single point of failure.
-2. **Identity Collision Resolver**: Handles real-world ICU scenario where patient wristband data may conflict.
-3. **Alert Fatigue Prevention**: Cooldown logic ensures nurses aren't overwhelmed by repeated alerts for the same patient.
-4. **Two-Layer Architecture**: RapidMiner (analytics/research layer) + Mendix (clinical deployment layer) mirrors how real hospital IT systems are structured.
+```bash
+docker-compose up --build
+```
+
+Access the React dashboard at: **http://localhost:5173**
+
+---
+
+## 🔧 Manual Setup
+
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+python data/generate_data.py
+python data/preprocess.py
+python ml/train_lstm.py
+python ml/evaluate.py
+
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+
+cd frontend
+npm install --legacy-peer-deps
+npm run dev
+```
 
 ---
 
@@ -173,7 +152,7 @@ npm run dev
 
 | Layer | Technology |
 |---|---|
-| Analytics & Baseline ML | **RapidMiner Studio** |
+| Analytics & Baseline ML | **Altair AI Studio (RapidMiner)** |
 | Clinical App | **Mendix** |
 | ML Production Model | PyTorch (LSTM), Scikit-Learn |
 | Backend | FastAPI, WebSockets |
